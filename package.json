@@ -1,5 +1,5 @@
 {
-  "name": "YouTube Description Changer",
+  "name": "youtube-description-manipulator",
   "version": "1.0.0",
   "description": "Automate changing description of multiple videos in a YouTube playlist you own (the videos too)",
   "main": "bScript.js",
