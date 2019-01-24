@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<style>
+		* {
+		margin: 0;
+		padding: 0;
+		font-family: calibri, sans-serif;
+	}
+	div#bigBox {
+    	position: fixed;
+	    top: 0;
+	    left: 0;
+	    width: 100vw;
+	    height: 100vh;
+	    display: flex;
+	    justify-content: center;
+	    align-items: center;
+	    background: rgba(0, 0, 0, 0.84);
+	}
+	#smallBox>p {
+    margin-top: 5px;
+    margin-bottom: 0px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+label:after {
+    content: '';
+    display: block;
+    clear: both;
+}
+#smallBox>p input[type="text"] {
+    width: 335px;
+    padding: 3px 6px;
+    font-size: 14px;
+    margin-left: 13px;
+    background: rgb(255, 255, 255);
+    vertical-align: middle;
+    float: right;
+}
+p label {
+    display: block;
+}
+#appendText {
+    width: 577px;
+    height: 125px;
+    vertical-align: middle;
+}
+button#submitBtn {
+    padding: 3px 20px;
+    display: block;
+    text-align: center;
+    margin: 0 auto;
+    font-size: 15px;
+    background: #240504;
+    color: white;
+    vertical-align: middle;
+    border: 0;
+    border-radius: 0;
+    cursor: pointer;
+}
+span {
+	    vertical-align: middle;
+}
+div#smallBox {
+    padding: 15px 40px;
+    background: rgb(216, 216, 216);
+    width: 750px;
+}
+#smallBox>p input[type="text"]#playlist {
+    width: 580px;
+    float: none;
+}
+div#terminal {
+    width: 100%;
+    height: 280px;
+    background: black;
+    color: rgb(0, 221, 0);
+    padding: 5px;
+    overflow-y: scroll;
+}
+input[name="choice"]:checked~input {
+    opacity: 1;
+    cursor: default;
+}
+input[name="choice"]~input {
+    opacity: 0.4;
+    cursor: no-drop;
+}
+#terminal ul p:before {
+    content: counter(x)'. ';
+    counter-increment: x;
+}
+#terminal ul, #terminal li {
+    list-style: none;
+    padding-top: 5px;
+    counter-reset: x;
+}
+#terminal li:before {
+	content: 'client@javascript: ';
+	    color: #8C8C8C;
+}
+h1 {
+    text-align: center;
+    padding: 20px;
+}
+#smallBox > span {
+    text-align: right;
+    display: block;
+    margin-top: 5px;
+    font-size: 12px;
+}
+	</style>
+</head>
+
+<body>
+	<div id="bigBox">
+		<div id="smallBox">
+			<h1>YouTube Description Manipulator</h1>
+			<p>
+				<span class="heading">Enter Playlist URL: </span>
+				<input type="text" id="playlist">
+			</p>
+			<p>
+				<span class="heading">Enter Description Text: </span>
+				<textarea id="appendText"></textarea>
+			</p>
+			<p>
+				<span class="heading" style="color:red">Choose this CAREFULLY</span>
+				<label><input type="radio" name="choice" data-id="a" checked> Append Text To End</label>
+				<label><input type="radio" name="choice" data-id="s" checked> Append Text To Start</label>
+				<label><input type="radio" name="choice" data-id="b"> Replace All Text (New Description)</label>
+				<label><input type="radio" name="choice" data-id="c"> Append Text To End IF following text is found: <input type="text"
+					 value="random garbage" id="followingText"></label>
+					 <label><input type="radio" name="choice" data-id="d"> Append Text To End IF following text NOT is found: <input
+						type="text" value=" " id="NOTfollowingText"></label>
+			</p>
+			<p class="submit">
+				<button type="button" id="submitBtn">Dude</button>
+			</p>
+			<div id="terminal">
+				<ul>
+					<li>Waiting for action...</li>
+				</ul>
+			</div>
+			<span>@mehulmpt created this! <a href="http://www.mypremiumtricks.com/youtube-description-editor/" target="_blank"
+				 style="font-weight:bold;color:black">HOW TO USE</a></span>
+		</div>
+	</div>
+	<script>
+
+		function $(elem) {
+			return document.querySelector(elem)
+		}
+
+		function updateTerminal(string, li) {
+			if (li == null || li == undefined) {
+				li = true;
+			}
+			var tag = li ? "li" : "p";
+			$('#terminal ul').innerHTML += ("<" + tag + ">" + string + "</" + tag + ">");
+			//$('#terminal').scrollTop($('#terminal').height())
+		}
+
+		document.addEventListener('click', function (e) {
+			if (e.target.id === 'submitBtn') {
+				runChangeScript()
+			}
+		}, false)
+
+		async function runChangeScript() {
+			const playlistURL = $('#playlist').value
+
+			const playlistRegex = /playlist\?list=(.*?)$/
+
+			if (!playlistRegex.test(playlistURL)) {
+				return alert('That doesnt looks like a valid playlist URL.\n\nA valid playlist link:\nhttps://www.youtube.com/playlist?list=PLYxzS__5yYQlwfMje_MxQPb18tXtCJbfR')
+			}
+
+			const descX = $('#appendText').value
+
+			const data = await (await fetch(`${playlistURL}&disable_polymer=true`)).text()
+
+			const regex = /<tr class="pl-video yt-uix-tile(.*?)" data-video-id="(.*?)"/g
+			const res = data.match(regex)
+
+			const vidIDs = []
+			const vidInfo = []
+			const tempVidInfo = []
+
+			for (i = 0; i < res.length; ++i) {
+				vidIDs.push(res[i].match(/data-video-id="(.*)"/)[1])
+			}
+
+			updateTerminal(`${vidIDs.length} videos were found`)
+			updateTerminal(`Getting video titles...`)
+
+			for (i = 0; i < vidIDs.length; i++) {
+				
+				let k = i
+
+				const data = await (await fetch(`https://www.youtube.com/edit?o=U&video_id=${vidIDs[k]}`)).text()
+
+				const title = data.match(/<input[\s\S]*?name="title"[\s\S]*?value="([\s\S]*?)"/)[1]
+				const desc = data.match(/<textarea[\s\S]*?name="description"[\s\S]*?>([\s\S]*?)<\/textarea>/)[1]
+				const sessionToken = data.match(/var session_token =.*?"(.*?)"/)[1]
+
+				debugger
+
+				let query = ''
+
+				let checkedVal = $('input[name="choice"]:checked').dataset.id
+
+				if (checkedVal == 'a') {
+					query = `description=${desc.split(" ").join("%20")}${encodeURIComponent(descX)}&modified_fields=description%2Cprivacy_draft&video_id=${vidIDs[k]}&session_token=${sessionToken}`
+				} else if(checkedVal == 's') {
+					query = `description=${encodeURIComponent(descX)}${desc.split(" ").join("%20")}&modified_fields=description%2Cprivacy_draft&video_id=${vidIDs[k]}&session_token=${sessionToken}`	
+				} else if (checkedVal == 'b') {
+					query = `description=${encodeURIComponent(descX)}&modified_fields=description%2Cprivacy_draft&video_id=${vidIDs[k]}&session_token=${sessionToken}`
+				} else if (checkedVal == 'c') {
+
+					let tempDesc = decodeURIComponent(desc)
+					let txt = $('#followingText').value
+
+					if ((tempDesc.toLowerCase()).split((txt.toLowerCase())).length > 1) {
+						query = `description=${desc.split(" ").join("%20")}${encodeURIComponent(descX)}&modified_fields=description%2Cprivacy_draft&video_id=${vidIDs[k]}&session_token=${sessionToken}`
+					} else {
+						updateTerminal("<span style='color:blue'>Skipped</span> - " + title, false)
+					}
+				} else if (checkedVal == 'd') {
+					let tempDesc = decodeURIComponent(desc)
+					let txt = $('#NOTfollowingText').value
+
+					if ((tempDesc.toLowerCase()).split((txt.toLowerCase())).length == 1) {
+						query = `description=${desc.split(" ").join("%20")}${encodeURIComponent(descX)}&modified_fields=description%2Cprivacy_draft&video_id=${vidIDs[k]}&session_token=${sessionToken}`
+					} else {
+						updateTerminal("Skipped - " + title, false);
+					}
+				}
+
+				if (query != '') {
+
+					const res = await (await fetch(`https://www.youtube.com/metadata_ajax?action_edit_video=1`, {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/x-www-form-urlencoded'
+						},
+						body: query
+					})).json()
+
+					updateTerminal(title + " | <span style='color:red'>Description Updated</span>", false)
+
+				}
+			}
+		}
+	</script>
+</body>
+
+</html>

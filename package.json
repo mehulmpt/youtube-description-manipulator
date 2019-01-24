@@ -1,0 +1,12 @@
+{
+  "name": "YouTube Description Changer",
+  "version": "1.0.0",
+  "description": "Automate changing description of multiple videos in a YouTube playlist you own (the videos too)",
+  "main": "bScript.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
